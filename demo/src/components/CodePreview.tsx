@@ -1,6 +1,6 @@
 import { css } from "../lib/css";
 
-const CODE_EXAMPLE = `import { VeraPayClient, createW3upAdapter } from "@verapay/sdk";
+const CODE_EXAMPLE = `import { VeraPayClient, FlowScheduler, createStorachaAdapter } from "@verapay/sdk";
 import { ethers } from "ethers";
 
 // 1. Connect to VeraPay on Flow EVM
@@ -9,32 +9,39 @@ const signer = await provider.getSigner();
 
 const veraPay = VeraPayClient.fromNetwork(
   "flow-testnet",
-  "0xYourContractAddress",
+  "0x0944830916CECb637613c9Fd0e8F6C21ccFFB4eF",
   signer,
-  createW3upAdapter(w3upClient) // IPFS via Protocol Labs
+  createStorachaAdapter({ key: "...", proof: "..." })
 );
 
 // 2. Merchant: Create a subscription plan
 const { planId } = await veraPay.createPlan({
-  paymentToken: "0xd431...91b1", // USDC on Flow
-  amount: ethers.parseUnits("14.99", 6),
+  paymentToken: "0x9C08...558b", // USDC on Flow
+  amount: ethers.parseUnits("14.99", 18),
   interval: 30n * 24n * 3600n, // 30 days
   name: "Pro Plan",
-  metadataURI: "ipfs://Qm...",
 });
 
-// 3. Subscriber: Approve & subscribe (one-liner!)
+// 3. Subscriber: Approve & subscribe
 const { subscriptionId, receipt } =
-  await veraPay.subscribeWithApproval(planId);
+  await veraPay.subscribe(planId);
 
 console.log("IPFS receipt:", receipt.ipfsCid);
 
-// 4. Backend keeper: auto-process due payments
-veraPay.startKeeper(
-  [subscriptionId],
-  60_000,  // check every minute
-  (receipt) => console.log("Payment processed:", receipt)
-);`;
+// 4. Schedule auto-payments with Flow Cadence (no keeper!)
+const scheduler = new FlowScheduler({
+  network: "testnet",
+  handlerAddress: "7c0bf27829276c6b",
+});
+await scheduler.authenticate(); // Flow wallet (Blocto, Lilico)
+
+const txId = await scheduler.schedulePayment({
+  subscriptionId: subscriptionId.toString(),
+  delaySeconds: "3600.0", // execute in 1 hour
+  priority: 1,            // Medium
+  executionEffort: 1000,
+});
+await scheduler.waitForTransaction(txId);`;
 
 export function CodePreview() {
   return (

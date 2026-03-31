@@ -1,21 +1,18 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { ethers } from "ethers";
+import { VeraPayClient, createStorachaAdapter, ERC20_ABI } from "@verapay/sdk";
 import { Header } from "./components/Header";
 import { Hero } from "./components/Hero";
 import { PricingCards } from "./components/PricingCards";
 import { CheckoutModal } from "./components/CheckoutModal";
 import { PaymentHistory } from "./components/PaymentHistory";
 import { MerchantPanel } from "./components/MerchantPanel";
+import { SchedulerPanel } from "./components/SchedulerPanel";
 import { CodePreview } from "./components/CodePreview";
 import { Footer } from "./components/Footer";
 import { connectWallet, onAccountsChanged, onChainChanged } from "./lib/wallet";
-import {
-  VERA_PAY_ADDRESS,
-  TEST_USDC_ADDRESS,
-  VERA_PAY_ABI,
-  ERC20_ABI,
-} from "./lib/contracts";
-import type { PlanDisplay, PaymentRecord, OnChainPlan } from "./lib/types";
+import { VERA_PAY_ADDRESS, TEST_USDC_ADDRESS, FLOW_TESTNET } from "./lib/contracts";
+import type { PlanDisplay, PaymentRecord } from "./lib/types";
 
 function intervalToLabel(seconds: bigint): string {
   const s = Number(seconds);
@@ -24,6 +21,13 @@ function intervalToLabel(seconds: bigint): string {
   if (s >= 86400) return "day";
   if (s >= 3600) return "hour";
   return `${s}s`;
+}
+
+function buildIpfsAdapter() {
+  const key = import.meta.env.VITE_STORACHA_KEY;
+  const proof = import.meta.env.VITE_STORACHA_PROOF;
+  if (!key || !proof) return undefined;
+  return createStorachaAdapter({ key, proof });
 }
 
 export default function App() {
@@ -37,80 +41,69 @@ export default function App() {
 
   const walletConnected = !!walletAddress;
 
+  const ipfsAdapter = useMemo(() => buildIpfsAdapter(), []);
+
+  // Read-only client for fetching plans (no signer needed)
+  const readClient = useMemo(
+    () => {
+      const provider = new ethers.JsonRpcProvider(FLOW_TESTNET.rpcUrl);
+      return VeraPayClient.fromNetwork("flow-testnet", VERA_PAY_ADDRESS, provider, ipfsAdapter);
+    },
+    [ipfsAdapter],
+  );
+
+  // Write client — only available when wallet is connected
+  const writeClient = useMemo(
+    () => signer ? VeraPayClient.fromNetwork("flow-testnet", VERA_PAY_ADDRESS, signer, ipfsAdapter) : null,
+    [signer, ipfsAdapter],
+  );
+
   const loadPlans = useCallback(async () => {
     setLoadingPlans(true);
     try {
-      const provider = new ethers.JsonRpcProvider("https://testnet.evm.nodes.onflow.org");
-      const contract = new ethers.Contract(VERA_PAY_ADDRESS, VERA_PAY_ABI, provider);
-      const nextId: bigint = await contract.nextPlanId();
-
-      const loaded: PlanDisplay[] = [];
-      for (let i = 0n; i < nextId; i++) {
-        try {
-          const raw = await contract.getPlan(i);
-          if (!raw.active) continue;
-          const onChain: OnChainPlan = {
-            planId: Number(i),
-            merchant: raw.merchant,
-            paymentToken: raw.paymentToken,
-            amount: raw.amount,
-            interval: raw.interval,
-            name: raw.name,
-            metadataURI: raw.metadataURI,
-            active: raw.active,
-          };
-
-          const decimals = 6;
-          const price = ethers.formatUnits(raw.amount, decimals);
-          loaded.push({
-            id: Number(i),
-            name: raw.name || `Plan #${i}`,
-            price,
-            interval: intervalToLabel(raw.interval),
-            features: [`${ethers.formatUnits(raw.amount, decimals)} USDC / ${intervalToLabel(raw.interval)}`, `Token: ${raw.paymentToken.slice(0, 6)}...${raw.paymentToken.slice(-4)}`, `Merchant: ${raw.merchant.slice(0, 6)}...${raw.merchant.slice(-4)}`],
-            highlighted: loaded.length === 0,
-            onChain,
-          });
-        } catch {
-          // plan might not exist or be invalid
-        }
-      }
-
+      const activePlans = await readClient.listActivePlans();
+      const loaded: PlanDisplay[] = activePlans.map((plan, idx) => {
+        const price = ethers.formatUnits(plan.amount, 18);
+        return {
+          id: Number(plan.planId),
+          name: plan.name || `Plan #${plan.planId}`,
+          price,
+          interval: intervalToLabel(plan.interval),
+          features: [
+            `${price} USDC / ${intervalToLabel(plan.interval)}`,
+            `Token: ${plan.paymentToken.slice(0, 6)}...${plan.paymentToken.slice(-4)}`,
+            `Merchant: ${plan.merchant.slice(0, 6)}...${plan.merchant.slice(-4)}`,
+          ],
+          highlighted: idx === 0,
+          onChain: plan,
+        };
+      });
       setPlans(loaded);
     } catch (err) {
       console.error("Failed to load plans:", err);
     } finally {
       setLoadingPlans(false);
     }
-  }, []);
+  }, [readClient]);
 
   const loadBalance = useCallback(async (addr: string) => {
     try {
-      const provider = new ethers.JsonRpcProvider("https://testnet.evm.nodes.onflow.org");
+      const provider = new ethers.JsonRpcProvider(FLOW_TESTNET.rpcUrl);
       const token = new ethers.Contract(TEST_USDC_ADDRESS, ERC20_ABI, provider);
       const bal: bigint = await token.balanceOf(addr);
-      setUsdcBalance(ethers.formatUnits(bal, 6));
+      setUsdcBalance(ethers.formatUnits(bal, 18));
     } catch {
       setUsdcBalance("0");
     }
   }, []);
 
-  useEffect(() => {
-    loadPlans();
-  }, [loadPlans]);
-
-  useEffect(() => {
-    if (walletAddress) loadBalance(walletAddress);
-  }, [walletAddress, loadBalance]);
+  useEffect(() => { loadPlans(); }, [loadPlans]);
+  useEffect(() => { if (walletAddress) loadBalance(walletAddress); }, [walletAddress, loadBalance]);
 
   useEffect(() => {
     const unsub1 = onAccountsChanged((accounts) => {
-      if (accounts.length === 0) {
-        setWalletAddress("");
-        setSigner(null);
-      } else {
-        setWalletAddress(accounts[0]);
-      }
+      if (accounts.length === 0) { setWalletAddress(""); setSigner(null); }
+      else setWalletAddress(accounts[0]);
     });
     const unsub2 = onChainChanged(() => {
       if (walletAddress) loadBalance(walletAddress);
@@ -130,10 +123,7 @@ export default function App() {
   };
 
   const handleSubscribe = (plan: PlanDisplay) => {
-    if (!plan.onChain) {
-      alert("This plan is not on-chain.");
-      return;
-    }
+    if (!plan.onChain) { alert("This plan is not on-chain."); return; }
     setSelectedPlan(plan);
   };
 
@@ -141,10 +131,6 @@ export default function App() {
     setPayments((prev) => [record, ...prev]);
     setSelectedPlan(null);
     if (walletAddress) loadBalance(walletAddress);
-  };
-
-  const handlePlanCreated = () => {
-    loadPlans();
   };
 
   return (
@@ -158,8 +144,8 @@ export default function App() {
       <main style={{ flex: 1 }}>
         <Hero />
 
-        {walletConnected && signer && (
-          <MerchantPanel signer={signer} onPlanCreated={handlePlanCreated} />
+        {walletConnected && writeClient && (
+          <MerchantPanel client={writeClient} onPlanCreated={loadPlans} />
         )}
 
         <PricingCards
@@ -171,15 +157,16 @@ export default function App() {
         />
 
         {payments.length > 0 && <PaymentHistory payments={payments} />}
+        <SchedulerPanel readClient={readClient} ipfsAdapter={ipfsAdapter} />
         <CodePreview />
       </main>
       <Footer />
 
-      {selectedPlan && signer && (
+      {selectedPlan && writeClient && (
         <CheckoutModal
           plan={selectedPlan}
           walletAddress={walletAddress}
-          signer={signer}
+          client={writeClient}
           onClose={() => setSelectedPlan(null)}
           onComplete={handlePaymentComplete}
         />

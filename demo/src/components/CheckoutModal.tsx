@@ -1,70 +1,58 @@
 import { useState } from "react";
 import { ethers } from "ethers";
 import { css } from "../lib/css";
-import {
-  VERA_PAY_ADDRESS,
-  VERA_PAY_ABI,
-  ERC20_ABI,
-  FLOW_TESTNET,
-} from "../lib/contracts";
+import { FLOW_TESTNET } from "../lib/contracts";
+import type { VeraPayClient } from "@verapay/sdk";
+import { ipfsGatewayUrl, ERC20_ABI } from "@verapay/sdk";
 import type { PlanDisplay, PaymentRecord } from "../lib/types";
 
 interface Props {
   plan: PlanDisplay;
   walletAddress: string;
-  signer: ethers.JsonRpcSigner;
+  client: VeraPayClient;
   onClose: () => void;
   onComplete: (record: PaymentRecord) => void;
 }
 
 type Step = "confirm" | "approving" | "subscribing" | "done";
 
-export function CheckoutModal({ plan, walletAddress, signer, onClose, onComplete }: Props) {
+export function CheckoutModal({ plan, walletAddress, client, onClose, onComplete }: Props) {
   const [step, setStep] = useState<Step>("confirm");
   const [error, setError] = useState("");
   const [txHash, setTxHash] = useState("");
+  const [ipfsCid, setIpfsCid] = useState("");
 
   const handleCheckout = async () => {
     if (!plan.onChain) return;
     setError("");
 
     try {
-      const token = new ethers.Contract(plan.onChain.paymentToken, ERC20_ABI, signer);
-      const veraPay = new ethers.Contract(VERA_PAY_ADDRESS, VERA_PAY_ABI, signer);
-
       // Step 1: Approve tokens
       setStep("approving");
-      const approveAmount = plan.onChain.amount * 12n; // ~12 billing cycles
-      const approveTx = await token.approve(VERA_PAY_ADDRESS, approveAmount);
+      const signer = (client.contract.runner as ethers.Signer);
+      const token = new ethers.Contract(plan.onChain.paymentToken, ERC20_ABI, signer);
+      const approveAmount = plan.onChain.amount * 12n;
+      const approveTx = await token.approve(client.contractAddress, approveAmount);
       await approveTx.wait();
 
-      // Step 2: Subscribe on-chain
+      // Step 2: Subscribe on-chain (SDK handles the tx + auto-pins receipt to IPFS)
       setStep("subscribing");
-      const subTx = await veraPay.subscribe(plan.onChain.planId);
-      const receipt = await subTx.wait();
-      setTxHash(receipt.hash);
+      const result = await client.subscribe(plan.onChain.planId);
+      setTxHash(result.tx.hash);
 
-      // Extract subscription ID from Subscribed event
-      const iface = new ethers.Interface(VERA_PAY_ABI);
-      let subscriptionId = "0";
-      for (const log of receipt.logs) {
-        try {
-          const parsed = iface.parseLog({ topics: [...log.topics], data: log.data });
-          if (parsed?.name === "Subscribed") {
-            subscriptionId = parsed.args.subscriptionId.toString();
-            break;
-          }
-        } catch { /* not our event */ }
+      if (result.receipt.ipfsCid) {
+        setIpfsCid(result.receipt.ipfsCid);
       }
 
       setStep("done");
 
       const record: PaymentRecord = {
-        subscriptionId,
+        subscriptionId: result.subscriptionId.toString(),
         planName: plan.name,
         amount: plan.price,
-        txHash: receipt.hash,
+        txHash: result.tx.hash,
         timestamp: Date.now(),
+        ipfsCid: result.receipt.ipfsCid,
         status: "success",
       };
 
@@ -115,7 +103,7 @@ export function CheckoutModal({ plan, walletAddress, signer, onClose, onComplete
           <div style={styles.row}>
             <span style={styles.label}>Contract</span>
             <span style={{ ...styles.value, fontFamily: "monospace", fontSize: 12 }}>
-              {VERA_PAY_ADDRESS.slice(0, 8)}...{VERA_PAY_ADDRESS.slice(-6)}
+              {client.contractAddress.slice(0, 8)}...{client.contractAddress.slice(-6)}
             </span>
           </div>
         </div>
@@ -125,6 +113,7 @@ export function CheckoutModal({ plan, walletAddress, signer, onClose, onComplete
             <div style={styles.info}>
               Your wallet will request two transactions: ERC-20 token approval, then
               the on-chain subscription. The first payment is charged immediately.
+              {client.hasIPFS && " A receipt will be pinned to IPFS automatically."}
             </div>
             {error && <div style={styles.error}>{error}</div>}
             <button style={styles.payButton} onClick={handleCheckout}>
@@ -140,7 +129,7 @@ export function CheckoutModal({ plan, walletAddress, signer, onClose, onComplete
               status={step === "approving" ? "active" : "done"}
             />
             <StepIndicator
-              label="Subscribe on-chain"
+              label={client.hasIPFS ? "Subscribe + pin receipt to IPFS" : "Subscribe on-chain"}
               status={
                 step === "subscribing"
                   ? "active"
@@ -165,6 +154,16 @@ export function CheckoutModal({ plan, walletAddress, signer, onClose, onComplete
                     View on Flowscan &#8599;
                   </a>
                 )}
+                {ipfsCid && (
+                  <a
+                    href={ipfsGatewayUrl(ipfsCid)}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={styles.txLink}
+                  >
+                    View receipt on IPFS &#8599;
+                  </a>
+                )}
               </>
             )}
           </div>
@@ -184,7 +183,7 @@ function StepIndicator({ label, status }: { label: string; status: "pending" | "
           ...(status === "done" ? stepStyles.dotDone : {}),
         }}
       >
-        {status === "done" && "✓"}
+        {status === "done" && "\u2713"}
         {status === "active" && <div style={stepStyles.spinner} />}
       </div>
       <span

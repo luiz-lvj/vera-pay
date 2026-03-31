@@ -1,5 +1,6 @@
 import { css } from "../lib/css";
 import { FLOW_TESTNET } from "../lib/contracts";
+import { ipfsGatewayUrl } from "@verapay/sdk";
 import type { PaymentRecord } from "../lib/types";
 
 interface Props {
@@ -19,6 +20,7 @@ export function PaymentHistory({ payments }: Props) {
           <span style={styles.th}>Amount</span>
           <span style={styles.th}>Sub ID</span>
           <span style={styles.th}>Tx Hash</span>
+          <span style={styles.th}>IPFS</span>
           <span style={styles.th}>Status</span>
         </div>
         {payments.map((p) => (
@@ -37,6 +39,20 @@ export function PaymentHistory({ payments }: Props) {
               >
                 {p.txHash.slice(0, 10)}... &#8599;
               </a>
+            </span>
+            <span style={styles.td}>
+              {p.ipfsCid ? (
+                <a
+                  href={ipfsGatewayUrl(p.ipfsCid)}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ color: "var(--accent-light)", fontFamily: "monospace", fontSize: 12, textDecoration: "none" }}
+                >
+                  {p.ipfsCid.slice(0, 12)}... &#8599;
+                </a>
+              ) : (
+                <span style={{ color: "var(--text-muted)", fontSize: 12 }}>—</span>
+              )}
             </span>
             <span style={styles.td}>
               <span style={styles.statusBadge}>
@@ -75,7 +91,7 @@ const styles = css({
   },
   headerRow: {
     display: "grid",
-    gridTemplateColumns: "1fr 1fr 1.5fr 1.5fr 0.8fr",
+    gridTemplateColumns: "1fr 0.8fr 0.8fr 1.5fr 1.5fr 0.8fr",
     padding: "14px 20px",
     borderBottom: "1px solid var(--border)",
     background: "rgba(255,255,255,0.02)",
@@ -89,7 +105,7 @@ const styles = css({
   },
   row: {
     display: "grid",
-    gridTemplateColumns: "1fr 1fr 1.5fr 1.5fr 0.8fr",
+    gridTemplateColumns: "1fr 0.8fr 0.8fr 1.5fr 1.5fr 0.8fr",
     padding: "14px 20px",
     borderBottom: "1px solid var(--border)",
     alignItems: "center",

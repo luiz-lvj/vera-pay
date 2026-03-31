@@ -1,13 +1,4 @@
-export interface OnChainPlan {
-  planId: number;
-  merchant: string;
-  paymentToken: string;
-  amount: bigint;
-  interval: bigint;
-  name: string;
-  metadataURI: string;
-  active: boolean;
-}
+import type { Plan } from "@verapay/sdk";
 
 export interface PlanDisplay {
   id: number;
@@ -16,7 +7,7 @@ export interface PlanDisplay {
   interval: string;
   features: string[];
   highlighted: boolean;
-  onChain?: OnChainPlan;
+  onChain?: Plan;
 }
 
 export interface PaymentRecord {

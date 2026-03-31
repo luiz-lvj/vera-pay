@@ -24,7 +24,7 @@ export function Footer() {
             <h4 style={styles.colTitle}>Resources</h4>
             <a href="https://developers.flow.com" style={styles.link} target="_blank" rel="noreferrer">Flow Docs</a>
             <a href="https://docs-beta.web3.storage" style={styles.link} target="_blank" rel="noreferrer">web3.storage</a>
-            <a href="https://evm-testnet.flowscan.io" style={styles.link} target="_blank" rel="noreferrer">Flowscan</a>
+            <a href="https://testnet.explorer.flow.com" style={styles.link} target="_blank" rel="noreferrer">Flow Explorer</a>
           </div>
         </div>
       </div>

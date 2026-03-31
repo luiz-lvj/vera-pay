@@ -1,42 +1,36 @@
 import { useState } from "react";
 import { ethers } from "ethers";
 import { css } from "../lib/css";
-import {
-  VERA_PAY_ADDRESS,
-  TEST_USDC_ADDRESS,
-  VERA_PAY_ABI,
-  ERC20_ABI,
-} from "../lib/contracts";
+import { TEST_USDC_ADDRESS } from "../lib/contracts";
+import type { VeraPayClient } from "@verapay/sdk";
+import { ERC20_ABI } from "@verapay/sdk";
 
 interface Props {
-  signer: ethers.JsonRpcSigner;
+  client: VeraPayClient;
   onPlanCreated: () => void;
 }
 
-export function MerchantPanel({ signer, onPlanCreated }: Props) {
+export function MerchantPanel({ client, onPlanCreated }: Props) {
   const [planName, setPlanName] = useState("Pro Streaming");
   const [planPrice, setPlanPrice] = useState("10");
   const [planInterval, setPlanInterval] = useState("3600");
   const [creating, setCreating] = useState(false);
   const [minting, setMinting] = useState(false);
+  const [mintTo, setMintTo] = useState("");
+  const [mintAmount, setMintAmount] = useState("1000");
   const [status, setStatus] = useState("");
 
   const handleCreatePlan = async () => {
     setCreating(true);
     setStatus("");
     try {
-      const contract = new ethers.Contract(VERA_PAY_ADDRESS, VERA_PAY_ABI, signer);
-      const amount = ethers.parseUnits(planPrice, 6);
-      const tx = await contract.createPlan(
-        TEST_USDC_ADDRESS,
-        amount,
-        BigInt(planInterval),
-        planName,
-        "",
-      );
-      setStatus("Waiting for confirmation...");
-      await tx.wait();
-      setStatus("Plan created on-chain!");
+      const { planId } = await client.createPlan({
+        paymentToken: TEST_USDC_ADDRESS,
+        amount: ethers.parseUnits(planPrice, 18),
+        interval: BigInt(planInterval),
+        name: planName,
+      });
+      setStatus(`Plan #${planId} created on-chain!`);
       onPlanCreated();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed";
@@ -50,12 +44,14 @@ export function MerchantPanel({ signer, onPlanCreated }: Props) {
     setMinting(true);
     setStatus("");
     try {
+      const signer = client.contract.runner as ethers.Signer;
       const token = new ethers.Contract(TEST_USDC_ADDRESS, ERC20_ABI, signer);
-      const addr = await signer.getAddress();
-      const tx = await token.mint(addr, ethers.parseUnits("1000", 6));
-      setStatus("Minting 1,000 test USDC...");
+      const recipient = mintTo.trim() || await signer.getAddress();
+      const amount = mintAmount.trim() || "1000";
+      const tx = await token.mint(recipient, ethers.parseUnits(amount, 18));
+      setStatus(`Minting ${amount} test USDC to ${recipient.slice(0, 6)}...${recipient.slice(-4)}`);
       await tx.wait();
-      setStatus("Minted 1,000 test USDC!");
+      setStatus(`Minted ${amount} test USDC to ${recipient.slice(0, 6)}...${recipient.slice(-4)}!`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed";
       setStatus("Error: " + (msg.length > 80 ? msg.slice(0, 80) + "..." : msg));
@@ -75,14 +71,33 @@ export function MerchantPanel({ signer, onPlanCreated }: Props) {
         <div style={styles.card}>
           <h3 style={styles.cardTitle}>Mint Test USDC</h3>
           <p style={styles.cardDesc}>
-            Get 1,000 test USDC tokens to your wallet for testing subscriptions.
+            Mint test USDC tokens. Leave recipient empty to mint to your own wallet, or enter any EVM address.
           </p>
+          <div style={styles.field}>
+            <label style={styles.fieldLabel}>Amount</label>
+            <input
+              style={styles.input}
+              type="number"
+              value={mintAmount}
+              onChange={(e) => setMintAmount(e.target.value)}
+              placeholder="1000"
+            />
+          </div>
+          <div style={styles.field}>
+            <label style={styles.fieldLabel}>Recipient (optional)</label>
+            <input
+              style={styles.input}
+              value={mintTo}
+              onChange={(e) => setMintTo(e.target.value)}
+              placeholder="0x... (leave empty for your wallet)"
+            />
+          </div>
           <button
             style={styles.btn}
             onClick={handleMintUSDC}
             disabled={minting}
           >
-            {minting ? "Minting..." : "Mint 1,000 USDC"}
+            {minting ? "Minting..." : `Mint ${mintAmount || "1000"} USDC`}
           </button>
         </div>
 
@@ -114,7 +129,10 @@ export function MerchantPanel({ signer, onPlanCreated }: Props) {
               value={planInterval}
               onChange={(e) => setPlanInterval(e.target.value)}
             >
-              <option value="3600">1 Hour (testing)</option>
+              <option value="15">15 Seconds (demo)</option>
+              <option value="60">1 Minute (demo)</option>
+              <option value="300">5 Minutes (demo)</option>
+              <option value="3600">1 Hour</option>
               <option value="86400">1 Day</option>
               <option value="604800">1 Week</option>
               <option value="2592000">30 Days</option>
