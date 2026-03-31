@@ -102,7 +102,7 @@ contract VeraPay is ReentrancyGuard {
     ) external returns (uint256 planId) {
         require(_paymentToken != address(0), "VeraPay: zero token");
         require(_amount > 0, "VeraPay: zero amount");
-        require(_interval >= 1 hours, "VeraPay: interval too short");
+        require(_interval >= 15 seconds, "VeraPay: interval too short");
 
         planId = nextPlanId++;
         plans[planId] = Plan({
