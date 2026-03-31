@@ -54,5 +54,6 @@ export interface NetworkConfig {
   chainId: number;
   rpcUrl: string;
   blockExplorer: string;
+  evmBlockExplorer: string;
   name: string;
 }

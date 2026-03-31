@@ -5,12 +5,14 @@ export const NETWORKS: Record<NetworkName, NetworkConfig> = {
     chainId: 545,
     rpcUrl: "https://testnet.evm.nodes.onflow.org",
     blockExplorer: "https://testnet.explorer.flow.com",
+    evmBlockExplorer: "https://testnet.evm.flow.com",
     name: "Flow EVM Testnet",
   },
   "flow-mainnet": {
     chainId: 747,
     rpcUrl: "https://mainnet.evm.nodes.onflow.org",
     blockExplorer: "https://explorer.flow.com",
+    evmBlockExplorer: "https://evm.flow.com",
     name: "Flow EVM Mainnet",
   },
 };
