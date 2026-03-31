@@ -2,7 +2,7 @@
 
 **Stripe, but on-chain.** Subscription payments powered by stablecoins on [Flow Blockchain](https://flow.com), with immutable receipts on [IPFS](https://ipfs.io) via [Storacha](https://storacha.network) (Protocol Labs).
 
-VeraPay is a TypeScript SDK (`@verapay/sdk`) that gives any dApp Stripe-like subscription billing — plan creation, one-click subscribe, ERC-20 payment pulling, IPFS receipts, and **fully on-chain scheduled recurring payments** using Flow's native Cadence scheduled transactions. No off-chain keepers or cron jobs required.
+VeraPay is a TypeScript SDK (`@vera-pay/sdk`) that gives any dApp Stripe-like subscription billing — plan creation, one-click subscribe, ERC-20 payment pulling, IPFS receipts, and **fully on-chain scheduled recurring payments** using Flow's native Cadence scheduled transactions. No off-chain keepers or cron jobs required.
 
 ---
 
@@ -21,7 +21,7 @@ VeraPay is a TypeScript SDK (`@verapay/sdk`) that gives any dApp Stripe-like sub
 
 ```
 vera-pay/
-├── sdk/          @verapay/sdk — the product (npm package)
+├── sdk/          @vera-pay/sdk — the product (npm package)
 ├── contracts/    Solidity smart contracts (Foundry) — deployed on Flow EVM
 ├── vera-pay/     Cadence project — scheduled transaction handler
 ├── demo/         Vite + React demo app
@@ -55,19 +55,19 @@ vera-pay/
 
 ---
 
-## The Product: `@verapay/sdk`
+## The Product: `@vera-pay/sdk`
 
 The SDK is the core product. Install it and integrate subscription payments in minutes.
 
 ```bash
-npm install @verapay/sdk ethers
+npm install @vera-pay/sdk ethers
 ```
 
 ```typescript
 import {
   VeraPayClient, FlowScheduler, createStorachaAdapter,
   DEPLOYED_CONTRACTS, CADENCE_HANDLERS, KNOWN_TOKENS,
-} from "@verapay/sdk";
+} from "@vera-pay/sdk";
 import { ethers } from "ethers";
 
 // Connect to VeraPay on Flow EVM
@@ -173,7 +173,7 @@ Open [http://localhost:5173](http://localhost:5173).
 
 | Folder | Description | README |
 |--------|-------------|--------|
-| [`sdk/`](./sdk/) | `@verapay/sdk` npm package — the core product | [SDK docs](./sdk/README.md) |
+| [`sdk/`](./sdk/) | `@vera-pay/sdk` npm package — the core product | [SDK docs](./sdk/README.md) |
 | [`contracts/`](./contracts/) | Solidity smart contracts (Foundry) | [Contracts docs](./contracts/README.md) |
 | [`vera-pay/`](./vera-pay/) | Cadence scheduled transaction handler | [Cadence docs](./vera-pay/README.md) |
 | [`demo/`](./demo/) | Vite + React demo application | [Demo docs](./demo/README.md) |

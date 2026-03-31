@@ -1,11 +1,11 @@
-# @verapay/sdk
+# @vera-pay/sdk
 
 On-chain subscription payments SDK for [Flow Blockchain](https://flow.com). Create plans, accept recurring stablecoin payments, schedule autonomous on-chain payment processing, and pin immutable receipts to IPFS via [Storacha](https://storacha.network) (Protocol Labs).
 
 ## Installation
 
 ```bash
-npm install @verapay/sdk ethers
+npm install @vera-pay/sdk ethers
 ```
 
 `ethers` v6 is a peer dependency.
@@ -28,7 +28,7 @@ Both support optional IPFS integration for pinning payment receipts.
 ### 1. Connect to VeraPay
 
 ```typescript
-import { VeraPayClient, createStorachaAdapter, DEPLOYED_CONTRACTS } from "@verapay/sdk";
+import { VeraPayClient, createStorachaAdapter, DEPLOYED_CONTRACTS } from "@vera-pay/sdk";
 import { ethers } from "ethers";
 
 const provider = new ethers.BrowserProvider(window.ethereum);
@@ -51,7 +51,7 @@ const client = VeraPayClient.fromNetwork(
 ### 2. Create a Subscription Plan (Merchant)
 
 ```typescript
-import { KNOWN_TOKENS } from "@verapay/sdk";
+import { KNOWN_TOKENS } from "@vera-pay/sdk";
 
 const { planId } = await client.createPlan({
   paymentToken: KNOWN_TOKENS["flow-testnet"].USDC,
@@ -76,7 +76,7 @@ console.log("IPFS receipt:", receipt.ipfsCid);
 ### 4. Schedule Recurring Payments (No Keeper Needed)
 
 ```typescript
-import { FlowScheduler, CADENCE_HANDLERS } from "@verapay/sdk";
+import { FlowScheduler, CADENCE_HANDLERS } from "@vera-pay/sdk";
 
 const scheduler = new FlowScheduler({
   network: "testnet",
@@ -254,7 +254,7 @@ storacha delegation create did:key:z6Mk... \
 ### Use in Code
 
 ```typescript
-import { createStorachaAdapter } from "@verapay/sdk";
+import { createStorachaAdapter } from "@vera-pay/sdk";
 
 const ipfs = createStorachaAdapter({
   key: "MgCaT7Se2QX9...",    // from `storacha key create`
@@ -332,7 +332,7 @@ import {
   // ABIs
   VERA_PAY_ABI,
   ERC20_ABI,
-} from "@verapay/sdk";
+} from "@vera-pay/sdk";
 ```
 
 ---

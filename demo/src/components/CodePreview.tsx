@@ -3,7 +3,7 @@ import { css } from "../lib/css";
 const CODE_EXAMPLE = `import {
   VeraPayClient, FlowScheduler, createStorachaAdapter,
   DEPLOYED_CONTRACTS, CADENCE_HANDLERS, KNOWN_TOKENS,
-} from "@verapay/sdk";
+} from "@vera-pay/sdk";
 import { ethers } from "ethers";
 
 // 1. Connect to VeraPay on Flow EVM
@@ -64,7 +64,7 @@ export function CodePreview() {
             subscription payments. IPFS receipts are automatic.
           </p>
           <div style={styles.install}>
-            <code style={styles.installCode}>npm install @verapay/sdk ethers</code>
+            <code style={styles.installCode}>npm install @vera-pay/sdk ethers</code>
           </div>
         </div>
         <div style={styles.codeWrap}>

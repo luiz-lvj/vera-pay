@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { FlowScheduler, CADENCE_HANDLERS, DEPLOYED_CONTRACTS, KNOWN_TOKENS, ipfsGatewayUrl } from "@verapay/sdk";
-import type { VeraPayClient, Subscription, Plan, IPFSAdapter } from "@verapay/sdk";
+import { FlowScheduler, CADENCE_HANDLERS, DEPLOYED_CONTRACTS, KNOWN_TOKENS, ipfsGatewayUrl } from "@vera-pay/sdk";
+import type { VeraPayClient, Subscription, Plan, IPFSAdapter } from "@vera-pay/sdk";
 import { css } from "../lib/css";
 
 interface Props {

@@ -6,7 +6,7 @@ VeraPay is an on-chain subscription payment protocol deployed on Flow Blockchain
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        @verapay/sdk                             │
+│                        @vera-pay/sdk                             │
 │  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────┐  │
 │  │  VeraPayClient   │  │  FlowScheduler   │  │ IPFS Adapters│  │
 │  │  (ethers.js)     │  │  (FCL)           │  │ (Storacha)   │  │

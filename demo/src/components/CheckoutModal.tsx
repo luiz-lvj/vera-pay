@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { css } from "../lib/css";
 import { FLOW_TESTNET } from "../lib/contracts";
-import type { VeraPayClient } from "@verapay/sdk";
-import { ipfsGatewayUrl } from "@verapay/sdk";
+import type { VeraPayClient } from "@vera-pay/sdk";
+import { ipfsGatewayUrl } from "@vera-pay/sdk";
 import type { PlanDisplay, PaymentRecord } from "../lib/types";
 
 interface Props {

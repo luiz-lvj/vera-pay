@@ -1,4 +1,4 @@
-import { DEPLOYED_CONTRACTS, KNOWN_TOKENS, NETWORKS } from "@verapay/sdk";
+import { DEPLOYED_CONTRACTS, KNOWN_TOKENS, NETWORKS } from "@vera-pay/sdk";
 
 export const VERA_PAY_ADDRESS = DEPLOYED_CONTRACTS["flow-testnet"];
 export const TEST_USDC_ADDRESS = KNOWN_TOKENS["flow-testnet"].USDC;

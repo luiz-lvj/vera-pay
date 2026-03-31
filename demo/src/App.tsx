@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { ethers } from "ethers";
-import { VeraPayClient, createStorachaAdapter, ERC20_ABI } from "@verapay/sdk";
+import { VeraPayClient, createStorachaAdapter, ERC20_ABI } from "@vera-pay/sdk";
 import { Header } from "./components/Header";
 import { Hero } from "./components/Hero";
 import { PricingCards } from "./components/PricingCards";

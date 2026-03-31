@@ -1,6 +1,6 @@
 # VeraPay Demo
 
-A React + Vite demo application showcasing `@verapay/sdk` integration. Demonstrates a streaming-platform checkout experience with both EVM (MetaMask) and Cadence (Flow wallet) payment flows.
+A React + Vite demo application showcasing `@vera-pay/sdk` integration. Demonstrates a streaming-platform checkout experience with both EVM (MetaMask) and Cadence (Flow wallet) payment flows.
 
 ## Features
 
@@ -37,7 +37,7 @@ See the [Storacha setup guide](../docs/storacha-setup.md) for how to obtain thes
 
 ## SDK Usage
 
-The demo consumes `@verapay/sdk` for all blockchain interactions:
+The demo consumes `@vera-pay/sdk` for all blockchain interactions:
 
 | Component | SDK Usage |
 |-----------|-----------|
@@ -50,6 +50,6 @@ The demo consumes `@verapay/sdk` for all blockchain interactions:
 ## Tech Stack
 
 - Vite + React + TypeScript
-- `@verapay/sdk` for all VeraPay logic
+- `@vera-pay/sdk` for all VeraPay logic
 - `ethers` v6 for EVM wallet interaction
 - `@onflow/fcl` (via SDK) for Flow wallet interaction

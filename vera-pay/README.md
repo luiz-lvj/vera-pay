@@ -117,10 +117,10 @@ flow transactions send cadence/transactions/ReInitVeraPayHandler.cdc \
 
 ## SDK Integration
 
-The `@verapay/sdk` wraps all these Cadence transactions via `FlowScheduler`:
+The `@vera-pay/sdk` wraps all these Cadence transactions via `FlowScheduler`:
 
 ```typescript
-import { FlowScheduler, CADENCE_HANDLERS, DEPLOYED_CONTRACTS } from "@verapay/sdk";
+import { FlowScheduler, CADENCE_HANDLERS, DEPLOYED_CONTRACTS } from "@vera-pay/sdk";
 
 const scheduler = new FlowScheduler({
   network: "testnet",

@@ -64,7 +64,7 @@ Save this — this is your `STORACHA_PROOF`.
 ## Using in the SDK
 
 ```typescript
-import { createStorachaAdapter, VeraPayClient, DEPLOYED_CONTRACTS } from "@verapay/sdk";
+import { createStorachaAdapter, VeraPayClient, DEPLOYED_CONTRACTS } from "@vera-pay/sdk";
 
 const ipfs = createStorachaAdapter({
   key: "MgCaT7Se2QX9...",       // STORACHA_KEY
@@ -102,7 +102,7 @@ The SDK supports pluggable IPFS adapters:
 ### Kubo (self-hosted IPFS node)
 
 ```typescript
-import { createKuboAdapter } from "@verapay/sdk";
+import { createKuboAdapter } from "@vera-pay/sdk";
 
 const ipfs = createKuboAdapter("http://localhost:5001");
 ```
@@ -110,7 +110,7 @@ const ipfs = createKuboAdapter("http://localhost:5001");
 ### In-Memory (testing)
 
 ```typescript
-import { createMemoryAdapter } from "@verapay/sdk";
+import { createMemoryAdapter } from "@vera-pay/sdk";
 
 const ipfs = createMemoryAdapter();
 ```

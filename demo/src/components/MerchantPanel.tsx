@@ -2,8 +2,8 @@ import { useState } from "react";
 import { ethers } from "ethers";
 import { css } from "../lib/css";
 import { TEST_USDC_ADDRESS } from "../lib/contracts";
-import type { VeraPayClient } from "@verapay/sdk";
-import { ERC20_ABI } from "@verapay/sdk";
+import type { VeraPayClient } from "@vera-pay/sdk";
+import { ERC20_ABI } from "@vera-pay/sdk";
 
 interface Props {
   client: VeraPayClient;

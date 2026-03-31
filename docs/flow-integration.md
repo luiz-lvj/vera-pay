@@ -104,7 +104,7 @@ A partial refund (currently 50%) is available if the scheduled transaction is ca
 The SDK uses [FCL (Flow Client Library)](https://github.com/onflow/fcl-js) for Flow wallet connections:
 
 ```typescript
-import { FlowScheduler } from "@verapay/sdk";
+import { FlowScheduler } from "@vera-pay/sdk";
 
 const scheduler = new FlowScheduler({ /* ... */ });
 

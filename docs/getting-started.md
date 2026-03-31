@@ -1,4 +1,4 @@
-# Getting Started with @verapay/sdk
+# Getting Started with @vera-pay/sdk
 
 This guide walks you through integrating VeraPay subscription payments into your dApp.
 
@@ -11,7 +11,7 @@ This guide walks you through integrating VeraPay subscription payments into your
 ## Installation
 
 ```bash
-npm install @verapay/sdk ethers
+npm install @vera-pay/sdk ethers
 ```
 
 ## 1. Initialize the Client
@@ -21,7 +21,7 @@ import {
   VeraPayClient,
   DEPLOYED_CONTRACTS,
   KNOWN_TOKENS,
-} from "@verapay/sdk";
+} from "@vera-pay/sdk";
 import { ethers } from "ethers";
 
 // Browser (MetaMask)
@@ -96,7 +96,7 @@ stop();
 No off-chain infrastructure needed. Uses Flow's native Cadence scheduled transactions:
 
 ```typescript
-import { FlowScheduler, CADENCE_HANDLERS } from "@verapay/sdk";
+import { FlowScheduler, CADENCE_HANDLERS } from "@vera-pay/sdk";
 
 const scheduler = new FlowScheduler({
   network: "testnet",
@@ -127,7 +127,7 @@ console.log("Scheduled TX ID:", result.scheduledTxId);
 Pin every payment receipt to IPFS via Storacha (Protocol Labs):
 
 ```typescript
-import { createStorachaAdapter } from "@verapay/sdk";
+import { createStorachaAdapter } from "@vera-pay/sdk";
 
 const ipfs = createStorachaAdapter({
   key: process.env.STORACHA_KEY!,

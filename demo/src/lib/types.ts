@@ -1,4 +1,4 @@
-import type { Plan } from "@verapay/sdk";
+import type { Plan } from "@vera-pay/sdk";
 
 export interface PlanDisplay {
   id: number;

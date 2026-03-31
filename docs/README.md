@@ -4,7 +4,7 @@
 
 | Document | Description |
 |----------|-------------|
-| [Getting Started](./getting-started.md) | Step-by-step guide to integrating `@verapay/sdk` |
+| [Getting Started](./getting-started.md) | Step-by-step guide to integrating `@vera-pay/sdk` |
 | [Architecture](./architecture.md) | System design and component overview |
 | [Flow Integration](./flow-integration.md) | Flow Blockchain dual-VM, scheduled transactions, and COAs |
 | [Storacha Setup](./storacha-setup.md) | Configure IPFS receipt pinning via Protocol Labs |
@@ -17,7 +17,7 @@ The full SDK API reference is in the [SDK README](../sdk/README.md).
 
 ### The Product
 
-**`@verapay/sdk`** is an npm package that provides on-chain subscription payments on Flow Blockchain. Install it, create plans, accept recurring stablecoin payments, and let Flow's native scheduled transactions handle the rest.
+**`@vera-pay/sdk`** is an npm package that provides on-chain subscription payments on Flow Blockchain. Install it, create plans, accept recurring stablecoin payments, and let Flow's native scheduled transactions handle the rest.
 
 ### Flow Blockchain (Dual-VM)
 
