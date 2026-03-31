@@ -1,13 +1,21 @@
 export { VeraPayClient } from "./client";
 export { VERA_PAY_ABI, ERC20_ABI } from "./abi";
-export { NETWORKS, KNOWN_TOKENS, DEFAULT_IPFS_GATEWAY } from "./constants";
+export { NETWORKS, KNOWN_TOKENS, DEPLOYED_CONTRACTS, CADENCE_HANDLERS, DEFAULT_IPFS_GATEWAY } from "./constants";
 export {
   createKuboAdapter,
-  createW3upAdapter,
+  createStorachaAdapter,
   createMemoryAdapter,
   buildPaymentReceipt,
+  ipfsGatewayUrl,
   type IPFSAdapter,
+  type StorachaConfig,
 } from "./ipfs";
+export {
+  FlowScheduler,
+  type SchedulerConfig,
+  type SchedulePaymentParams,
+  type SubscribeAndScheduleResult,
+} from "./scheduler";
 export type {
   Plan,
   Subscription,

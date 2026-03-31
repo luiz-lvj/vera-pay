@@ -4,19 +4,19 @@ export const NETWORKS: Record<NetworkName, NetworkConfig> = {
   "flow-testnet": {
     chainId: 545,
     rpcUrl: "https://testnet.evm.nodes.onflow.org",
-    blockExplorer: "https://evm-testnet.flowscan.io",
+    blockExplorer: "https://testnet.explorer.flow.com",
     name: "Flow EVM Testnet",
   },
   "flow-mainnet": {
     chainId: 747,
     rpcUrl: "https://mainnet.evm.nodes.onflow.org",
-    blockExplorer: "https://evm.flowscan.io",
+    blockExplorer: "https://explorer.flow.com",
     name: "Flow EVM Mainnet",
   },
 };
 
 export const DEPLOYED_CONTRACTS: Record<string, string> = {
-  "flow-testnet": "0x0944830916CECb637613c9Fd0e8F6C21ccFFB4eF",
+  "flow-testnet": "0x24730C8387C11e6031f692Bf0B14000D93271766",
 };
 
 export const KNOWN_TOKENS: Record<string, Record<string, string>> = {
@@ -29,4 +29,8 @@ export const KNOWN_TOKENS: Record<string, Record<string, string>> = {
   },
 };
 
-export const DEFAULT_IPFS_GATEWAY = "https://w3s.link/ipfs";
+export const CADENCE_HANDLERS: Record<string, string> = {
+  "flow-testnet": "7c0bf27829276c6b",
+};
+
+export const DEFAULT_IPFS_GATEWAY = "https://storacha.link/ipfs";

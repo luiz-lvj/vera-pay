@@ -219,6 +219,28 @@ export class VeraPayClient {
 
   // ── Read helpers ─────────────────────────────────────────────────────
 
+  async getNextPlanId(): Promise<bigint> {
+    return this.contract.nextPlanId();
+  }
+
+  async getNextSubscriptionId(): Promise<bigint> {
+    return this.contract.nextSubscriptionId();
+  }
+
+  async listActivePlans(): Promise<Plan[]> {
+    const nextId = await this.getNextPlanId();
+    const plans: Plan[] = [];
+    for (let i = 0n; i < nextId; i++) {
+      try {
+        const plan = await this.getPlan(i);
+        if (plan.active) plans.push(plan);
+      } catch {
+        // plan might not exist
+      }
+    }
+    return plans;
+  }
+
   async getPlan(planId: bigint): Promise<Plan> {
     const raw = await this.contract.getPlan(planId);
     return {
@@ -251,6 +273,14 @@ export class VeraPayClient {
   }
 
   // ── IPFS ─────────────────────────────────────────────────────────────
+
+  get hasIPFS(): boolean {
+    return !!this.ipfs;
+  }
+
+  get contractAddress(): string {
+    return this.config.contractAddress;
+  }
 
   /**
    * Pin a payment receipt to IPFS and return the CID.

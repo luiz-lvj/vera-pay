@@ -1,15 +1,6 @@
 import type { PaymentReceipt } from "./types";
 import { DEFAULT_IPFS_GATEWAY } from "./constants";
 
-/**
- * IPFS storage adapter for VeraPay payment receipts.
- *
- * By default uses the built-in JSON-over-fetch approach that works with any
- * IPFS HTTP API (Kubo, Pinata, web3.storage gateway, etc.).
- *
- * For production, integrators can provide their own `uploadJson` / `fetchJson`
- * implementations backed by @web3-storage/w3up-client, Pinata SDK, etc.
- */
 export interface IPFSAdapter {
   uploadJson(data: unknown): Promise<string>;
   fetchJson<T = unknown>(cid: string): Promise<T>;
@@ -46,28 +37,79 @@ export function createKuboAdapter(apiUrl: string): IPFSAdapter {
   };
 }
 
+export interface StorachaConfig {
+  key: string;
+  proof: string;
+}
+
 /**
- * Adapter that uses the w3up-client from Protocol Labs / web3.storage.
+ * Creates an IPFS adapter backed by Storacha (formerly web3.storage).
  *
- * Integrators call `createW3upAdapter` with an already-authenticated client
- * instance so that key management stays in their control.
+ * Accepts either a pre-built client (anything with `uploadFile`) or a
+ * `{ key, proof }` config. When config is provided, the Storacha client
+ * is lazily initialized on first upload using a memory store + Ed25519
+ * principal — no interactive auth or email prompts.
+ *
+ * Setup (one-time, via Storacha CLI):
+ * ```bash
+ * storacha key create --json          # → { "did": "...", "key": "MgCa..." }
+ * storacha delegation create <did> \
+ *   -c space/blob/add -c space/index/add \
+ *   -c filecoin/offer -c upload/add --base64   # → mAYIEAP8...
+ * ```
  *
  * Usage:
  * ```ts
- * import { create } from "@web3-storage/w3up-client";
- * import { createW3upAdapter } from "@verapay/sdk";
+ * import { createStorachaAdapter } from "@verapay/sdk";
  *
- * const w3 = await create();
- * // ... authenticate & set space ...
- * const adapter = createW3upAdapter(w3);
+ * const ipfs = createStorachaAdapter({
+ *   key: process.env.STORACHA_KEY!,
+ *   proof: process.env.STORACHA_PROOF!,
+ * });
  * ```
  */
-export function createW3upAdapter(client: {
-  uploadFile: (file: Blob) => Promise<{ toString(): string }>;
-}): IPFSAdapter {
+export function createStorachaAdapter(
+  clientOrConfig:
+    | { uploadFile: (file: Blob) => Promise<{ toString(): string }> }
+    | StorachaConfig,
+): IPFSAdapter {
+  type UploadClient = { uploadFile: (file: Blob) => Promise<{ toString(): string }> };
+  let resolvedClient: UploadClient | null = null;
+  let initPromise: Promise<UploadClient> | null = null;
+
+  async function getClient(): Promise<UploadClient> {
+    if (resolvedClient) return resolvedClient;
+
+    if ("uploadFile" in clientOrConfig) {
+      resolvedClient = clientOrConfig;
+      return resolvedClient;
+    }
+
+    if (!initPromise) {
+      initPromise = (async () => {
+        const { key, proof } = clientOrConfig;
+        const Client = await import("@storacha/client");
+        const ed25519 = await import("@storacha/client/principal/ed25519");
+        const { StoreMemory } = await import("@storacha/client/stores/memory");
+        const Proof = await import("@storacha/client/proof");
+
+        const principal = ed25519.parse(key);
+        const client = await Client.create({ principal, store: new StoreMemory() });
+        const space = await client.addSpace(await Proof.parse(proof));
+        await client.setCurrentSpace(space.did());
+        resolvedClient = client;
+        return client;
+      })();
+    }
+
+    return initPromise;
+  }
+
   return {
     async uploadJson(data: unknown): Promise<string> {
-      const blob = new Blob([JSON.stringify(data)], {
+      const client = await getClient();
+      if (!client) throw new Error("Storacha client failed to initialize");
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
         type: "application/json",
       });
       const cid = await client.uploadFile(blob);
@@ -131,4 +173,8 @@ export function buildPaymentReceipt(
     blockNumber,
     chainId,
   };
+}
+
+export function ipfsGatewayUrl(cid: string): string {
+  return `${DEFAULT_IPFS_GATEWAY}/${cid}`;
 }
