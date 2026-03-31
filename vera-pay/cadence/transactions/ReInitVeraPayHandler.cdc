@@ -2,21 +2,33 @@ import "VeraPayScheduledPaymentHandler"
 import "FlowTransactionScheduler"
 import "EVM"
 
-/// Initializes the VeraPay scheduled payment handler resource.
-/// Must be run after SetupCOA.cdc so that a COA exists at /storage/evm.
+/// Removes an existing VeraPay handler (if any) and creates a new one
+/// pointing to the given EVM contract address.
+/// Use this after redeploying the VeraPay EVM contract.
 ///
 /// Parameters:
-///   verapayEvmAddress: hex string of the VeraPay contract on Flow EVM (with 0x prefix)
+///   verapayEvmAddress: hex string of the NEW VeraPay contract on Flow EVM (with 0x prefix)
 transaction(verapayEvmAddress: String) {
-    prepare(signer: auth(BorrowValue, SaveValue, IssueStorageCapabilityController, PublishCapability, GetStorageCapabilityController) &Account) {
-        if signer.storage.borrow<&AnyResource>(from: /storage/VeraPayScheduledPaymentHandler) != nil {
-            log("VeraPay handler already exists")
-            return
+    prepare(signer: auth(BorrowValue, SaveValue, LoadValue, IssueStorageCapabilityController, PublishCapability, UnpublishCapability, GetStorageCapabilityController) &Account) {
+        // 1. Destroy old handler resource
+        if let oldHandler <- signer.storage.load<@AnyResource>(from: /storage/VeraPayScheduledPaymentHandler) {
+            destroy oldHandler
+            log("Destroyed old VeraPay handler")
         }
+
+        // 2. Unpublish old public capability
+        signer.capabilities.unpublish(/public/VeraPayScheduledPaymentHandler)
+
+        // 3. Delete ALL old capability controllers for this path
+        let oldControllers = signer.capabilities.storage.getControllers(forPath: /storage/VeraPayScheduledPaymentHandler)
+        for controller in oldControllers {
+            controller.delete()
+        }
+        log("Deleted ".concat(oldControllers.length.toString()).concat(" old capability controllers"))
 
         let evmAddr = EVM.addressFromString(verapayEvmAddress)
 
-        // Get the COA capability with Call entitlement
+        // Get or issue COA capability
         var coaCap: Capability<auth(EVM.Call) &EVM.CadenceOwnedAccount>? = nil
         let controllers = signer.capabilities.storage.getControllers(forPath: /storage/evm)
         for controller in controllers {
@@ -46,6 +58,6 @@ transaction(verapayEvmAddress: String) {
         )
         signer.capabilities.publish(publicCap, at: /public/VeraPayScheduledPaymentHandler)
 
-        log("VeraPay handler initialized for contract: ".concat(verapayEvmAddress))
+        log("VeraPay handler re-initialized for contract: ".concat(verapayEvmAddress))
     }
 }
