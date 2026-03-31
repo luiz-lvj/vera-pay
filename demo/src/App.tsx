@@ -23,6 +23,16 @@ function intervalToLabel(seconds: bigint): string {
   return `${s}s`;
 }
 
+function compactPrice(raw: string): string {
+  if (!raw.includes(".")) return raw;
+  const [int, dec] = raw.split(".");
+  if (!dec || dec.length <= 6) return raw;
+  const leadingZeros = dec.match(/^0*/)?.[0].length ?? 0;
+  if (leadingZeros <= 3) return `${int}.${dec.slice(0, 6)}`;
+  const significant = dec.slice(leadingZeros, leadingZeros + 2) || "0";
+  return `${int}.${"0".repeat(Math.min(leadingZeros, 3))}…${significant}`;
+}
+
 function buildIpfsAdapter() {
   const key = import.meta.env.VITE_STORACHA_KEY;
   const proof = import.meta.env.VITE_STORACHA_PROOF;
@@ -63,7 +73,8 @@ export default function App() {
     try {
       const activePlans = await readClient.listActivePlans();
       const loaded: PlanDisplay[] = activePlans.map((plan, idx) => {
-        const price = ethers.formatUnits(plan.amount, 18);
+        const rawPrice = ethers.formatUnits(plan.amount, 18);
+        const price = compactPrice(rawPrice);
         return {
           id: Number(plan.planId),
           name: plan.name || `Plan #${plan.planId}`,
@@ -91,7 +102,7 @@ export default function App() {
       const provider = new ethers.JsonRpcProvider(FLOW_TESTNET.rpcUrl);
       const token = new ethers.Contract(TEST_USDC_ADDRESS, ERC20_ABI, provider);
       const bal: bigint = await token.balanceOf(addr);
-      setUsdcBalance(ethers.formatUnits(bal, 18));
+      setUsdcBalance(compactPrice(ethers.formatUnits(bal, 18)));
     } catch {
       setUsdcBalance("0");
     }

@@ -1,73 +1,55 @@
-# React + TypeScript + Vite
+# VeraPay Demo
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React + Vite demo application showcasing `@verapay/sdk` integration. Demonstrates a streaming-platform checkout experience with both EVM (MetaMask) and Cadence (Flow wallet) payment flows.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Merchant Panel** — Create subscription plans, mint test USDC
+- **Pricing Cards** — Browse and subscribe to plans via MetaMask
+- **Cadence Scheduler** — Connect a Flow wallet, subscribe & schedule recurring payments using Flow's native scheduled transactions
+- **Payment History** — View past payments with links to block explorer and IPFS receipts
+- **Code Preview** — Copy-pasteable SDK integration example
 
-## React Compiler
+## Running
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+# First, build the SDK (from repo root)
+cd sdk && npm install && npm run build && cd ..
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Then run the demo
+cd demo
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open [http://localhost:5173](http://localhost:5173).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Environment Variables
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Create a `.env` file (optional — IPFS features are disabled without these):
+
 ```
+VITE_STORACHA_KEY=MgCaT7Se2QX9...
+VITE_STORACHA_PROOF=mAYIEAP8OEaJlcm9v...
+```
+
+See the [Storacha setup guide](../docs/storacha-setup.md) for how to obtain these.
+
+## SDK Usage
+
+The demo consumes `@verapay/sdk` for all blockchain interactions:
+
+| Component | SDK Usage |
+|-----------|-----------|
+| `App.tsx` | `VeraPayClient.fromNetwork()`, `createStorachaAdapter()`, `listActivePlans()` |
+| `MerchantPanel` | `client.createPlan()` |
+| `CheckoutModal` | `client.subscribeWithApproval()` |
+| `SchedulerPanel` | `FlowScheduler` — `authenticate`, `setup`, `approveERC20`, `subscribeAndSchedule`, `schedulePayment` |
+| `PaymentHistory` | Displays `PaymentReceipt` with IPFS links via `ipfsGatewayUrl()` |
+
+## Tech Stack
+
+- Vite + React + TypeScript
+- `@verapay/sdk` for all VeraPay logic
+- `ethers` v6 for EVM wallet interaction
+- `@onflow/fcl` (via SDK) for Flow wallet interaction

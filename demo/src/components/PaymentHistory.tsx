@@ -32,7 +32,7 @@ export function PaymentHistory({ payments }: Props) {
             </span>
             <span style={styles.td}>
               <a
-                href={`${FLOW_TESTNET.blockExplorer}/tx/${p.txHash}`}
+                href={`${FLOW_TESTNET.evmBlockExplorer}/tx/${p.txHash}`}
                 target="_blank"
                 rel="noreferrer"
                 style={{ color: "var(--accent-light)", fontFamily: "monospace", fontSize: 12, textDecoration: "none" }}

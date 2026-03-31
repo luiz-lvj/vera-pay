@@ -38,7 +38,7 @@ export async function switchToFlowTestnet(): Promise<void> {
           chainId: FLOW_TESTNET.chainIdHex,
           chainName: FLOW_TESTNET.name,
           rpcUrls: [FLOW_TESTNET.rpcUrl],
-          blockExplorerUrls: [FLOW_TESTNET.blockExplorer],
+          blockExplorerUrls: [FLOW_TESTNET.evmBlockExplorer],
           nativeCurrency: FLOW_TESTNET.currency,
         }],
       });

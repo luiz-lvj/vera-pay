@@ -10,6 +10,7 @@ export const FLOW_TESTNET = {
   chainIdHex: "0x" + network.chainId.toString(16),
   rpcUrl: network.rpcUrl,
   blockExplorer: network.blockExplorer,
+  evmBlockExplorer: network.evmBlockExplorer,
   name: network.name,
   currency: { name: "FLOW", symbol: "FLOW", decimals: 18 },
 };

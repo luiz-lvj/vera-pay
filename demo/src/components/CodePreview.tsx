@@ -1,47 +1,53 @@
 import { css } from "../lib/css";
 
-const CODE_EXAMPLE = `import { VeraPayClient, FlowScheduler, createStorachaAdapter } from "@verapay/sdk";
+const CODE_EXAMPLE = `import {
+  VeraPayClient, FlowScheduler, createStorachaAdapter,
+  DEPLOYED_CONTRACTS, CADENCE_HANDLERS, KNOWN_TOKENS,
+} from "@verapay/sdk";
 import { ethers } from "ethers";
 
 // 1. Connect to VeraPay on Flow EVM
 const provider = new ethers.BrowserProvider(window.ethereum);
 const signer = await provider.getSigner();
+const ipfs = createStorachaAdapter({ key: "...", proof: "..." });
 
 const veraPay = VeraPayClient.fromNetwork(
   "flow-testnet",
-  "0x0944830916CECb637613c9Fd0e8F6C21ccFFB4eF",
+  DEPLOYED_CONTRACTS["flow-testnet"],
   signer,
-  createStorachaAdapter({ key: "...", proof: "..." })
+  ipfs // receipts auto-pinned to IPFS via Storacha
 );
 
 // 2. Merchant: Create a subscription plan
 const { planId } = await veraPay.createPlan({
-  paymentToken: "0x9C08...558b", // USDC on Flow
+  paymentToken: KNOWN_TOKENS["flow-testnet"].USDC,
   amount: ethers.parseUnits("14.99", 18),
   interval: 30n * 24n * 3600n, // 30 days
   name: "Pro Plan",
 });
 
-// 3. Subscriber: Approve & subscribe
+// 3. Subscriber: Approve token + subscribe (one call)
 const { subscriptionId, receipt } =
-  await veraPay.subscribe(planId);
-
+  await veraPay.subscribeWithApproval(planId);
 console.log("IPFS receipt:", receipt.ipfsCid);
 
-// 4. Schedule auto-payments with Flow Cadence (no keeper!)
+// 4. Subscribe & schedule via Flow Cadence — no off-chain keeper!
 const scheduler = new FlowScheduler({
   network: "testnet",
-  handlerAddress: "7c0bf27829276c6b",
+  handlerAddress: CADENCE_HANDLERS["flow-testnet"],
+  evmContractAddress: DEPLOYED_CONTRACTS["flow-testnet"],
+  ipfsAdapter: ipfs,
 });
 await scheduler.authenticate(); // Flow wallet (Blocto, Lilico)
+await scheduler.setup();        // COA + handler (one-time)
+await scheduler.approveERC20(KNOWN_TOKENS["flow-testnet"].USDC);
 
-const txId = await scheduler.schedulePayment({
-  subscriptionId: subscriptionId.toString(),
-  delaySeconds: "3600.0", // execute in 1 hour
-  priority: 1,            // Medium
-  executionEffort: 1000,
+const result = await scheduler.subscribeAndSchedule({
+  planId: planId.toString(),
+  intervalSeconds: "2592000.0", // 30 days
 });
-await scheduler.waitForTransaction(txId);`;
+console.log("Scheduled TX:", result.scheduledTxId);
+console.log("IPFS CID:", result.ipfsCid);`;
 
 export function CodePreview() {
   return (

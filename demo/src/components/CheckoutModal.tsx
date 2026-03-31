@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { ethers } from "ethers";
 import { css } from "../lib/css";
 import { FLOW_TESTNET } from "../lib/contracts";
 import type { VeraPayClient } from "@verapay/sdk";
-import { ipfsGatewayUrl, ERC20_ABI } from "@verapay/sdk";
+import { ipfsGatewayUrl } from "@verapay/sdk";
 import type { PlanDisplay, PaymentRecord } from "../lib/types";
 
 interface Props {
@@ -27,17 +26,10 @@ export function CheckoutModal({ plan, walletAddress, client, onClose, onComplete
     setError("");
 
     try {
-      // Step 1: Approve tokens
       setStep("approving");
-      const signer = (client.contract.runner as ethers.Signer);
-      const token = new ethers.Contract(plan.onChain.paymentToken, ERC20_ABI, signer);
-      const approveAmount = plan.onChain.amount * 12n;
-      const approveTx = await token.approve(client.contractAddress, approveAmount);
-      await approveTx.wait();
 
-      // Step 2: Subscribe on-chain (SDK handles the tx + auto-pins receipt to IPFS)
+      const result = await client.subscribeWithApproval(plan.onChain.planId);
       setStep("subscribing");
-      const result = await client.subscribe(plan.onChain.planId);
       setTxHash(result.tx.hash);
 
       if (result.receipt.ipfsCid) {
@@ -146,12 +138,12 @@ export function CheckoutModal({ plan, walletAddress, client, onClose, onComplete
                 </div>
                 {txHash && (
                   <a
-                    href={`${FLOW_TESTNET.blockExplorer}/tx/${txHash}`}
+                    href={`${FLOW_TESTNET.evmBlockExplorer}/tx/${txHash}`}
                     target="_blank"
                     rel="noreferrer"
                     style={styles.txLink}
                   >
-                    View on Flowscan &#8599;
+                    View on Explorer &#8599;
                   </a>
                 )}
                 {ipfsCid && (
