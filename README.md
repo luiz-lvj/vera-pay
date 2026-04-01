@@ -1,4 +1,8 @@
-# VeraPay
+<p align="center">
+  <img src="./logo.png" alt="VeraPay" width="120" />
+</p>
+
+<h1 align="center">VeraPay</h1>
 
 **Stripe, but on-chain.** Subscription payments powered by stablecoins on [Flow Blockchain](https://flow.com), with immutable receipts on [IPFS](https://ipfs.io) via [Storacha](https://storacha.network) (Protocol Labs).
 
