@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./logo.png" alt="VeraPay" width="120" />
+  <img src="./logo.svg" alt="VeraPay" width="120" />
 </p>
 
 <h1 align="center">VeraPay</h1>
